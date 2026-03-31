@@ -68,7 +68,9 @@ convert_file() {
     fi
 
     local ext="${INPUT_FILE##*.}"
-    if [[ "${ext,,}" != "mov" ]]; then
+    local ext_lc
+    ext_lc=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
+    if [[ "$ext_lc" != "mov" ]]; then
         echo "[$TOTAL] Skipping: '$INPUT_FILE' (not a .mov file)"
         ((SKIPPED++))
         return 0
@@ -99,7 +101,7 @@ convert_file() {
     if ! ffmpeg -y -i "$INPUT_FILE" \
         -c:v libx264 -crf 28 -preset medium \
         -c:a aac -b:a 128k \
-        -vf "scale='min(1920,iw)':'min(1080,ih)':force_original_aspect_ratio=decrease" \
+        -vf "scale='min(1920,iw)':'min(1080,ih)':force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2" \
         -movflags +faststart \
         "$OUTPUT_FILE"; then
         echo "    ✗ Conversion failed for: $INPUT_FILE"
